@@ -167,37 +167,41 @@ abstract class Filter
      */
     public static function parse($fn, $fv)
     {
-        // if filter name does not contains a '_' at the end,
-        // and value contains a '-' then explode the value by '-' to make it array.
-        if (substr($fn, -1) != '_' && preg_match('/^\d{1,9}(-\d{1,9})?$/',$fv)) {
-            $fv = explode('-', $fv);
-        }
+        if(str_contains($fv, '-')) {
+            // if filter name does not contains a '_' at the end,
+            // and value contains a '-' then explode the value by '-' to make it array.
+            if (substr($fn, -1) != '_' && preg_match('/^\d{1,9}(-\d{1,9})?$/',$fv)) {
+                $fv = explode('-', $fv);
+            }
 
-        if (is_array($fv)) {
-            // if filter is a 'date', then change the format to Y-m-d
-            if (str_contains($fn, 'date') || preg_match('/^([0]?[1-9]|[1|2][0-9]|[3][0|1])[.\/-]([0]?[1-9]|[1][0-2])[.\/-]([0-9]{4}|[0-9]{2})$/', trim($fv[0]))) {
-                $fv = [date('Y-m-d', strtotime(trim($fv[0]))), date('Y-m-d', strtotime(trim($fv[1])))];
-            }
-            $filter = ['whereBetween', $fn, $fv];
-        } else {
-            // key = ab_cd_ef_ for rawWhere from url
-            if (substr($fn, -1) == '_') {
-                $fn = substr($fn, 0, -1);
-                if (str_contains($fn, $fv))
-                    $filter = ['whereRaw', $fn, str_replace('-', ' ', $fv)];
-                else {
-                    // Remove dashes from  string, only if they are outside of double quotes
-                    // is-null => is null
-                    // is-like-"%0618-603TM BE19%" => is like "%0618-603TM BE19%"
-                    $fv = preg_replace("/-(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/", ' ', $fv);
-                    $filter = ['whereRaw', $fn, '`' . $fn . '` ' . $fv];
-                }
-            } else {
+            if (is_array($fv)) {
                 // if filter is a 'date', then change the format to Y-m-d
-                if (str_contains($fn, 'date'))
-                    $fv = date('Y-m-d', strtotime(trim($fv)));
-                $filter = ['where', $fn, $fv];
+                if (str_contains($fn, 'date') || preg_match('/^([0]?[1-9]|[1|2][0-9]|[3][0|1])[.\/-]([0]?[1-9]|[1][0-2])[.\/-]([0-9]{4}|[0-9]{2})$/', trim($fv[0]))) {
+                    $fv = [date('Y-m-d', strtotime(trim($fv[0]))), date('Y-m-d', strtotime(trim($fv[1])))];
+                }
+                $filter = ['whereBetween', $fn, $fv];
+            } else {
+                // key = ab_cd_ef_ for rawWhere from url
+                if (substr($fn, -1) == '_') {
+                    $fn = substr($fn, 0, -1);
+                    if (str_contains($fn, $fv))
+                        $filter = ['whereRaw', $fn, str_replace('-', ' ', $fv)];
+                    else {
+                        // Remove dashes from  string, only if they are outside of double quotes
+                        // is-null => is null
+                        // is-like-"%0618-603TM BE19%" => is like "%0618-603TM BE19%"
+                        $fv = preg_replace("/-(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/", ' ', $fv);
+                        $filter = ['whereRaw', $fn, '`' . $fn . '` ' . $fv];
+                    }
+                } else {
+                    // if filter is a 'date', then change the format to Y-m-d
+                    if (str_contains($fn, 'date'))
+                        $fv = date('Y-m-d', strtotime(trim($fv)));
+                    //$filter = ['where', $fn, $fv];
+                }
             }
+        } else {
+            $filter = ['where', $fn, $fv];
         }
         return $filter;
     }
