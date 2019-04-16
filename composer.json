@@ -1,5 +1,5 @@
 {
-  "name": "velitsol/eloquent-filter",
+  "name": "htek/eloquent-filter",
   "description": "A laravel package to filter eloquent models and their relationships based on URL query strings.",
   "type": "library",
   "license": "MIT",
